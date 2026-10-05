@@ -1,0 +1,10 @@
+﻿services:
+  - type: web
+    name: bomba-das-silabas
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        sync: false

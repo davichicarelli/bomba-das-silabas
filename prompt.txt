@@ -1,0 +1,874 @@
+Crie um jogo multiplayer online chamado **“Bomba das Sílabas”**, totalmente responsivo para celular, tablet e computador.
+
+# 🎮 CONCEITO DO JOGO
+
+O jogo será uma competição multiplayer de palavras.
+
+No centro da tela haverá uma **bomba com um cronômetro**. O jogador que estiver com a bomba deverá escrever, dentro do tempo disponível, uma palavra válida em português brasileiro que contenha a **sílaba apresentada na tela**.
+
+Exemplo:
+
+**SÍLABA: CA**
+
+O jogador pode escrever:
+
+* CASA
+* CADERNO
+* MACACO
+* CACHORRO
+
+Ao enviar uma palavra válida, a bomba passa para o próximo jogador e uma nova sílaba é sorteada.
+
+O objetivo é **não estar com a bomba quando o cronômetro chegar a zero**.
+
+---
+
+# 💣 REGRA PRINCIPAL DA BOMBA
+
+A bomba sempre estará com apenas um jogador por vez.
+
+Quando o turno começar:
+
+1. Uma sílaba é sorteada.
+2. O cronômetro começa.
+3. O jogador precisa escrever uma palavra válida contendo aquela sílaba.
+4. Se acertar dentro do tempo, a bomba passa para o próximo jogador.
+5. Uma nova sílaba é sorteada.
+6. O cronômetro é reiniciado.
+7. Se o tempo chegar a zero, a bomba explode.
+
+### 💥 Quando a bomba explode
+
+O jogador que estiver segurando a bomba:
+
+**PERDE 1 VIDA.**
+
+Cada jogador começa a partida com:
+
+**❤️ ❤️**
+
+Ou seja, cada jogador possui **2 vidas no total**.
+
+Se perder uma vida:
+
+**❤️**
+
+Se perder a segunda:
+
+**0 vidas**
+
+e será **eliminado da partida**.
+
+Não haverá escolha entre “vidas”, “pontuação” ou “eliminação”: **o sistema oficial de partida será baseado em vidas, com 2 vidas por jogador.**
+
+A pontuação poderá existir apenas como informação complementar no placar.
+
+---
+
+# ❤️ SISTEMA DE VIDAS
+
+Todos os jogadores começam com:
+
+**❤️ ❤️**
+
+Quando a bomba explode:
+
+**-1 ❤️**
+
+Exemplo:
+
+Jogador:
+
+**❤️ ❤️**
+
+Bomba explode:
+
+**❤️**
+
+Segunda explosão:
+
+**0 ❤️**
+
+O jogador é eliminado.
+
+### Regra de eliminação
+
+Quando um jogador perder as duas vidas:
+
+* ele não poderá mais receber a bomba;
+* não poderá enviar palavras;
+* aparecerá como eliminado no placar;
+* continuará podendo assistir à partida;
+* seus turnos serão removidos da ordem de jogadores ativos.
+
+A partida continua até restar **apenas um jogador ativo**.
+
+Esse jogador será declarado o vencedor.
+
+---
+
+# ⏱️ TEMPO DA BOMBA
+
+O tempo padrão da bomba será:
+
+**5 segundos.**
+
+O administrador da sala poderá alterar o tempo antes da partida começar.
+
+Opções:
+
+* 3 segundos
+* 5 segundos
+* 7 segundos
+* 10 segundos
+* 15 segundos
+* personalizado
+
+O tempo escolhido valerá para todos os turnos da partida.
+
+O administrador não poderá alterar o tempo depois que a partida começar.
+
+---
+
+# 🔤 SISTEMA DE SÍLABAS
+
+Criar um banco de sílabas válidas do **português brasileiro**.
+
+Não tentar gerar todas as combinações possíveis de letras.
+
+O sistema deverá trabalhar com um inventário real de estruturas silábicas utilizadas no português brasileiro.
+
+Exemplos:
+
+BA, BE, BI, BO, BU
+CA, CE, CI, CO, CU
+DA, DE, DI, DO, DU
+FA, FE, FI, FO, FU
+LA, LE, LI, LO, LU
+MA, ME, MI, MO, MU
+PA, PE, PI, PO, PU
+RA, RE, RI, RO, RU
+SA, SE, SI, SO, SU
+TA, TE, TI, TO, TU
+
+Também incluir estruturas complexas:
+
+BRA, BRE, BRI, BRO, BRU
+CLA, CLE, CLI, CLO, CLU
+PRA, PRE, PRI, PRO, PRU
+TRA, TRE, TRI, TRO, TRU
+CHA, CHE, CHI, CHO, CHU
+GRA, GRE, GRI, GRO, GRU
+FRA, FRE, FRI, FRO, FRU
+PLA, PLE, PLI, PLO, PLU
+
+O sistema deve evitar sílabas artificiais ou combinações que não sejam utilizadas no português brasileiro.
+
+---
+
+# 🎯 REGRA DA SÍLABA
+
+A palavra enviada precisa conter a sílaba sorteada de forma válida.
+
+A sílaba pode aparecer:
+
+* no início;
+* no meio;
+* no final.
+
+Exemplo:
+
+Sílaba:
+
+**CA**
+
+Palavras válidas:
+
+**CA**SA
+MA**CA**CO
+MUSI**CA**
+
+Não é obrigatório que a sílaba esteja especificamente no meio da palavra.
+
+---
+
+# 🟢 DESTAQUE DA SÍLABA
+
+Depois de uma resposta correta, mostrar a palavra na tela destacando em **verde** a sílaba correspondente.
+
+Exemplo:
+
+Sílaba sorteada:
+
+**CA**
+
+Palavra:
+
+**MACACO**
+
+Mostrar visualmente:
+
+MA **CA** CO
+
+Se a sílaba aparecer mais de uma vez, destacar todas as ocorrências válidas.
+
+O destaque deve funcionar também para sílabas maiores.
+
+Exemplo:
+
+**PRO**
+
+Palavra:
+
+**PROBLEMA**
+
+Resultado:
+
+**PRO**BLEMA
+
+---
+
+# 📖 VALIDAÇÃO DO DICIONÁRIO
+
+O jogo deve aceitar **somente palavras existentes no português brasileiro**.
+
+A validação definitiva deve acontecer no **backend/servidor**.
+
+O sistema deve utilizar uma base de palavras/dicionário adequada para português brasileiro.
+
+Não aceitar:
+
+* palavras inventadas;
+* sequências aleatórias;
+* abreviações;
+* siglas;
+* nomes de usuário;
+* emojis;
+* palavras inexistentes;
+* palavras criadas pelo jogador;
+* apenas a sílaba isolada, caso não seja uma palavra válida.
+
+A palavra deve cumprir **duas condições obrigatórias**:
+
+### 1. A palavra existe no dicionário.
+
+### 2. A palavra contém a sílaba sorteada.
+
+Se qualquer uma dessas condições falhar, a resposta será inválida.
+
+---
+
+# ✍️ TRATAMENTO DA DIGITAÇÃO
+
+O sistema deve aceitar:
+
+* letras maiúsculas;
+* letras minúsculas;
+* acentos;
+* cedilha.
+
+Por exemplo:
+
+**coração**
+
+e
+
+**CORAÇÃO**
+
+devem ser reconhecidos como a mesma palavra.
+
+Entretanto, o sistema não deve simplesmente remover letras ou alterar a palavra de maneira que transforme uma palavra inexistente em uma palavra válida.
+
+A validação deve preservar a integridade da palavra.
+
+---
+
+# ❌ PALAVRA INVÁLIDA
+
+Se o jogador enviar uma palavra inválida:
+
+Mostrar:
+
+**❌ PALAVRA INVÁLIDA**
+
+e explicar brevemente:
+
+* “A palavra não está no dicionário.”
+  ou
+* “A palavra não contém a sílaba CA.”
+
+O jogador **continua com a bomba**.
+
+O cronômetro continua correndo.
+
+Ele poderá tentar outra palavra enquanto ainda houver tempo.
+
+Isso cria pressão e evita que o jogador possa ficar enviando respostas inválidas sem consequência.
+
+---
+
+# 👥 SISTEMA MULTIPLAYER
+
+Criar um sistema real de salas multiplayer.
+
+O jogo deverá permitir que jogadores estejam em dispositivos diferentes.
+
+Exemplo:
+
+Computador:
+
+**Criar sala → ABC742**
+
+Celular:
+
+**Entrar na sala → ABC742**
+
+Os dois jogadores devem aparecer no mesmo lobby.
+
+O sistema deve utilizar comunicação em tempo real através de tecnologia adequada, como:
+
+* WebSockets;
+* Socket.IO;
+* Firebase Realtime Database;
+* Supabase Realtime;
+* ou tecnologia equivalente.
+
+---
+
+# 🏠 CRIAÇÃO DA SALA
+
+Na tela inicial:
+
+**💣 BOMBA DAS SÍLABAS**
+
+[ CRIAR SALA ]
+
+[ ENTRAR EM SALA ]
+
+Ao criar uma sala, solicitar:
+
+* nome do jogador;
+* nome da sala;
+* senha opcional;
+* tempo da bomba;
+* quantidade máxima de jogadores.
+
+Gerar automaticamente um código único.
+
+Exemplo:
+
+**ABC742**
+
+---
+
+# 🔐 SENHA DA SALA
+
+O administrador poderá escolher:
+
+### Sala pública
+
+Qualquer jogador que possua o código poderá entrar.
+
+### Sala protegida
+
+O jogador precisará informar:
+
+**Código + senha**
+
+A senha deve ser armazenada de forma segura no backend e nunca em texto puro.
+
+---
+
+# 🚪 ENTRAR EM UMA SALA
+
+Solicitar:
+
+**Nome do jogador**
+
+**Código da sala**
+
+**Senha**, somente quando necessária.
+
+Após entrar corretamente, levar o jogador para o lobby.
+
+---
+
+# 🏠 LOBBY
+
+Antes do jogo começar, todos ficam no lobby.
+
+Mostrar:
+
+# 💣 BOMBA DAS SÍLABAS
+
+**Sala: ABC742**
+
+### JOGADORES
+
+🟢 Jogador 1 — 👑 Administrador
+🟢 Jogador 2
+🟢 Jogador 3
+🟢 Jogador 4
+
+Mostrar:
+
+**4/8 jogadores**
+
+O lobby deve atualizar automaticamente quando alguém entrar ou sair.
+
+---
+
+# 👑 ADMINISTRADOR
+
+O criador da sala será automaticamente o administrador.
+
+Somente ele poderá:
+
+* iniciar a partida;
+* alterar o tempo da bomba;
+* definir o máximo de jogadores;
+* ativar/desativar senha antes do início;
+* expulsar jogadores;
+* encerrar a sala.
+
+Depois que a partida começar, as configurações principais ficam bloqueadas.
+
+---
+
+# ▶️ INÍCIO DA PARTIDA
+
+A partida só poderá começar com **2 ou mais jogadores**.
+
+Quando o administrador clicar:
+
+**INICIAR JOGO**
+
+todos verão:
+
+**3**
+
+**2**
+
+**1**
+
+**💣 COMEÇOU!**
+
+Depois:
+
+1. O servidor define a ordem dos jogadores.
+2. Sorteia a primeira sílaba.
+3. Define o primeiro jogador.
+4. Inicia o cronômetro.
+5. Entrega a bomba ao primeiro jogador.
+
+---
+
+# 🔄 ORDEM DOS TURNOS
+
+Os turnos seguem uma ordem definida pelo servidor.
+
+Exemplo:
+
+**Davi → Ana → João → Maria → Davi...**
+
+Quando um jogador acertar:
+
+**Davi → Ana**
+
+A bomba passa para Ana.
+
+Quando Ana acertar:
+
+**Ana → João**
+
+E assim por diante.
+
+### Jogadores eliminados
+
+Se um jogador perder as duas vidas, ele é removido automaticamente da ordem.
+
+Exemplo:
+
+Davi → Ana → João → Maria
+
+Ana é eliminada:
+
+Davi → João → Maria
+
+---
+
+# 💥 EXPLOSÃO
+
+Quando o cronômetro chegar a zero:
+
+Mostrar uma animação de explosão.
+
+Exemplo:
+
+# 💥 BOOM!
+
+**A bomba explodiu com João!**
+
+Mostrar:
+
+**João perdeu 1 vida.**
+
+Se ainda possuir uma vida:
+
+**❤️**
+
+A bomba passa para o próximo jogador ativo.
+
+Se chegar a:
+
+**0 ❤️**
+
+mostrar:
+
+**João foi eliminado!**
+
+Depois disso, continuar a partida normalmente com os jogadores restantes.
+
+---
+
+# 🏆 VITÓRIA
+
+Quando restar somente um jogador ativo:
+
+Mostrar uma tela especial:
+
+# 🏆 VENCEDOR!
+
+**Davi**
+
+**❤️ ❤️**
+
+**Você venceu a partida!**
+
+Mostrar também o ranking final dos jogadores.
+
+---
+
+# 📊 PLACAR
+
+Durante a partida, mostrar:
+
+| Jogador | Vidas | Status    |
+| ------- | ----- | --------- |
+| Davi    | ❤️ ❤️ | Jogando   |
+| Ana     | ❤️    | Jogando   |
+| João    | ❤️ ❤️ | Jogando   |
+| Maria   | 0     | Eliminada |
+
+Também registrar:
+
+* palavras corretas;
+* palavras inválidas;
+* explosões sofridas;
+* vidas restantes.
+
+A pontuação é opcional e serve apenas como estatística complementar. **Ela não substitui o sistema de duas vidas.**
+
+---
+
+# 🌐 ESTADO DO JOGO NO SERVIDOR
+
+O servidor será a fonte oficial de verdade.
+
+O cliente não poderá decidir sozinho:
+
+* qual é a sílaba;
+* quem possui a bomba;
+* quanto tempo resta;
+* se uma palavra é válida;
+* quantas vidas o jogador possui;
+* quem está eliminado;
+* quem venceu;
+* pontuação.
+
+Isso deve impedir manipulação através do navegador ou DevTools.
+
+---
+
+# 🛡️ ANTI-CHEAT
+
+Implementar validações no servidor para impedir:
+
+* alteração do cronômetro;
+* alteração das vidas;
+* alteração da sílaba;
+* alteração da pontuação;
+* envio de palavras fora do turno;
+* envio de várias respostas simultâneas;
+* manipulação do resultado.
+
+O jogador só poderá enviar uma palavra se estiver realmente com a bomba.
+
+---
+
+# 🎨 DESIGN
+
+Criar uma identidade visual moderna, divertida e competitiva.
+
+Tema:
+
+**PALAVRAS + BOMBA + PRESSÃO + COMPETIÇÃO**
+
+Utilizar:
+
+* fundo escuro;
+* detalhes neon;
+* bomba como elemento central;
+* cronômetro grande;
+* animações;
+* cards dos jogadores;
+* indicadores de vidas;
+* feedback visual.
+
+A bomba deve ser o elemento mais importante da tela durante a partida.
+
+---
+
+# 📱 RESPONSIVIDADE
+
+O jogo deve funcionar perfeitamente em:
+
+* celular;
+* tablet;
+* notebook;
+* computador.
+
+No celular:
+
+* interface vertical;
+* bomba grande;
+* sílaba em destaque;
+* campo de texto fácil de tocar;
+* teclado não deve esconder informações importantes;
+* botões com tamanho adequado para toque.
+
+No computador:
+
+* jogadores podem aparecer nas laterais;
+* bomba centralizada;
+* placar visível;
+* melhor aproveitamento do espaço horizontal.
+
+Não permitir rolagem horizontal.
+
+---
+
+# 🖥️ TELAS
+
+Criar:
+
+### 1. Tela inicial
+
+**💣 BOMBA DAS SÍLABAS**
+
+[ CRIAR SALA ]
+
+[ ENTRAR EM SALA ]
+
+### 2. Criar sala
+
+Formulário de criação.
+
+### 3. Entrar em sala
+
+Código + senha.
+
+### 4. Lobby
+
+Jogadores + configurações + botão iniciar.
+
+### 5. Partida
+
+Mostrar:
+
+**SÍLABA**
+
+# CA
+
+**💣**
+
+# 04.2s
+
+**É SUA VEZ!**
+
+[ DIGITE UMA PALAVRA ]
+
+[ ENVIAR ]
+
+Vidas:
+
+**❤️ ❤️**
+
+### 6. Explosão
+
+# 💥 BOOM!
+
+**Você perdeu 1 vida!**
+
+### 7. Eliminação
+
+# ❌ ELIMINADO
+
+**Você perdeu suas duas vidas.**
+
+### 8. Vitória
+
+# 🏆 VOCÊ VENCEU!
+
+Mostrar ranking final.
+
+---
+
+# 🔊 EFEITOS SONOROS
+
+Adicionar sons opcionais para:
+
+* início;
+* nova sílaba;
+* palavra correta;
+* palavra inválida;
+* últimos segundos;
+* explosão;
+* eliminação;
+* vitória.
+
+Adicionar:
+
+**🔊 Som: ON/OFF**
+
+---
+
+# 💾 ARQUITETURA
+
+Separar corretamente:
+
+* frontend;
+* backend;
+* banco de dados;
+* sistema de salas;
+* autenticação das salas;
+* dicionário;
+* validação de palavras;
+* gerenciamento dos turnos;
+* sistema de vidas;
+* WebSocket/multiplayer.
+
+Todas as informações críticas devem ser controladas pelo servidor.
+
+---
+
+# 📚 VALIDAÇÃO EFICIENTE
+
+Criar uma estrutura otimizada para verificar rapidamente:
+
+**A palavra existe?**
+
+**A palavra contém a sílaba?**
+
+**Onde a sílaba aparece?**
+
+**Qual trecho deve ficar verde?**
+
+A validação precisa ser rápida para não prejudicar a experiência durante os 5 segundos da bomba.
+
+---
+
+# ⭐ EXEMPLO DE PARTIDA
+
+Sílaba:
+
+# RA
+
+Bomba:
+
+**💣 05.0s**
+
+Jogador escreve:
+
+**RATO**
+
+Servidor verifica:
+
+✓ Palavra existe no dicionário.
+✓ Palavra contém “RA”.
+
+Resultado:
+
+**🟢 RA**TO
+
+**✓ PALAVRA CORRETA!**
+
+A bomba passa para o próximo jogador.
+
+Nova sílaba:
+
+# PRO
+
+Novo jogador escreve:
+
+**PROBLEMA**
+
+Resultado:
+
+**🟢 PRO**BLEMA
+
+A bomba passa novamente.
+
+Se um jogador estiver com a bomba e o cronômetro chegar a:
+
+**00.0**
+
+A bomba explode:
+
+# 💥 BOOM!
+
+**Jogador perdeu 1 vida.**
+
+Antes:
+
+**❤️ ❤️**
+
+Depois:
+
+**❤️**
+
+Se acontecer novamente:
+
+**💥 BOOM!**
+
+**0 vidas**
+
+O jogador é eliminado.
+
+A partida continua até restar apenas um jogador.
+
+---
+
+# 🎯 REGRA DEFINITIVA DA PARTIDA
+
+A regra central do jogo deve ser exatamente:
+
+**Cada jogador começa com 2 vidas.**
+
+**A bomba começa com 5 segundos por padrão.**
+
+**O administrador pode alterar esse tempo antes da partida.**
+
+**O jogador precisa enviar uma palavra existente no dicionário português brasileiro que contenha a sílaba sorteada.**
+
+**Se acertar, a bomba passa para o próximo jogador.**
+
+**Se o tempo acabar, a bomba explode e o jogador perde 1 vida.**
+
+**Ao perder as 2 vidas, o jogador é eliminado.**
+
+**A partida termina quando resta apenas 1 jogador ativo.**
+
+**O último jogador ativo é o vencedor.**
+
+Todas as outras funcionalidades devem respeitar essas regras e não criar regras alternativas que entrem em conflito com elas.
