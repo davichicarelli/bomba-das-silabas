@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>💣 Bomba das Sílabas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<header class="topbar">
+  <div class="logo">💣 BOMBA <span>DAS SÍLABAS</span></div>
+  <div class="top-actions">
+    <button id="btnSound" class="icon-btn" title="Som">🔊</button>
+    <button id="btnLeave" class="icon-btn hidden" title="Sair">🚪</button>
+  </div>
+</header>
+
+<!-- HOME -->
+<section id="screen-home" class="screen active">
+  <div class="hero">
+    <div class="bomb-hero">💣</div>
+    <h1>BOMBA<br><span>DAS SÍLABAS</span></h1>
+    <p>Escreva palavras com a sílaba sorteada antes que a bomba exploda!</p>
+    <div class="hero-actions">
+      <button id="btnCreate" class="btn primary pulse">CRIAR SALA</button>
+      <button id="btnJoin" class="btn secondary">ENTRAR EM SALA</button>
+    </div>
+    <div class="features">
+      <div class="feat">❤️ 2 vidas</div>
+      <div class="feat">⏱️ 5s pressão</div>
+      <div class="feat">🌐 Multiplayer</div>
+    </div>
+  </div>
+</section>
+
+<!-- CREATE -->
+<section id="screen-create" class="screen">
+  <div class="card">
+    <h2>🛠️ Criar Sala</h2>
+    <label>Seu nome <input id="c-name" maxlength="16" placeholder="Ex: Davi"></label>
+    <label>Nome da sala <input id="c-room" maxlength="20" placeholder="Ex: Turma 7A"></label>
+    <label>Senha (opcional) <input id="c-pass" type="password" placeholder="Deixe vazio para pública"></label>
+    <p class="muted" style="font-size:12px;margin-top:10px">⚙️ Tempo, dificuldade, vidas e máx. jogadores serão configurados no lobby pelo administrador.</p>
+    <div class="card-actions">
+      <button id="c-back" class="btn ghost">Voltar</button>
+      <button id="c-submit" class="btn primary">CRIAR →</button>
+    </div>
+    <p id="c-error" class="error"></p>
+  </div>
+</section>
+
+<!-- JOIN -->
+<section id="screen-join" class="screen">
+  <div class="card">
+    <h2>🚪 Entrar em Sala</h2>
+    <label>Seu nome <input id="j-name" maxlength="16" placeholder="Seu apelido"></label>
+    <label>Código da sala <input id="j-code" maxlength="6" placeholder="Ex: ABC742" style="text-transform:uppercase"></label>
+    <label>Senha (se houver) <input id="j-pass" type="password" placeholder="Senha da sala"></label>
+    <div class="card-actions">
+      <button id="j-back" class="btn ghost">Voltar</button>
+      <button id="j-submit" class="btn primary">ENTRAR →</button>
+    </div>
+    <p id="j-error" class="error"></p>
+  </div>
+</section>
+
+<!-- LOBBY -->
+<section id="screen-lobby" class="screen">
+  <div class="lobby-wrap">
+    <div class="card lobby-card">
+      <div class="lobby-header">
+        <h2>🏠 Sala: <span id="lobby-code"></span></h2>
+        <span id="lobby-name" class="muted"></span>
+        <div class="lobby-info">
+          <span id="lobby-count">0/0</span> • <span id="lobby-time"></span> • <span id="lobby-diff"></span> • <span id="lobby-status"></span>
+        </div>
+      </div>
+      <div id="lobby-settings" class="lobby-settings hidden">
+        <h3 style="margin-bottom:10px;font-size:14px;letter-spacing:1px;color:var(--muted)">⚙️ CONFIGURAÇÕES (ADMIN)</h3>
+        <div class="settings-grid">
+          <label>⏱️ Tempo bomba
+            <select id="lobby-time-select">
+              <option value="3">3s</option>
+              <option value="5">5s</option>
+              <option value="7">7s</option>
+              <option value="10">10s</option>
+              <option value="15">15s</option>
+              <option value="20">20s</option>
+              <option value="30">30s</option>
+            </select>
+          </label>
+          <label>🎚️ Dificuldade
+            <select id="lobby-diff-select">
+              <option value="facil">🟢 Fácil</option>
+              <option value="medio">🟡 Médio</option>
+              <option value="dificil">🔴 Difícil</option>
+              <option value="insano">💀 Insano</option>
+            </select>
+          </label>
+          <label>❤️ Vidas
+            <select id="lobby-lives-select">
+              <option value="1">1 ❤️</option>
+              <option value="2">2 ❤️❤️</option>
+              <option value="3">3 ❤️❤️❤️</option>
+              <option value="4">4 ❤️❤️❤️❤️</option>
+              <option value="5">5 ❤️❤️❤️❤️❤️</option>
+            </select>
+          </label>
+          <label>👥 Máx. jogadores
+            <select id="lobby-max-select">
+              <option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="12">12</option>
+            </select>
+          </label>
+        </div>
+        <p id="lobby-settings-hint" class="muted" style="font-size:12px;margin-top:8px"></p>
+      </div>
+      <div id="lobby-players" class="players-grid"></div>
+      <div class="lobby-actions">
+        <button id="lobby-start" class="btn primary hidden">▶️ INICIAR JOGO (2+)</button>
+        <p id="lobby-wait" class="muted">Aguardando administrador iniciar...</p>
+        <p id="lobby-error" class="error"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COUNTDOWN -->
+<section id="screen-countdown" class="screen">
+  <div class="countdown-wrap">
+    <div id="count-num" class="count-num">3</div>
+    <p id="count-text">Prepare-se!</p>
+  </div>
+</section>
+
+<!-- GAME -->
+<section id="screen-game" class="screen">
+  <div class="game-layout">
+    <aside class="scoreboard">
+      <h3>📊 Placar</h3>
+      <div id="score-list"></div>
+    </aside>
+    <main class="game-center">
+      <div id="turn-indicator" class="turn-indicator">Aguardando...</div>
+      <div id="typing-display" class="typing-display hidden"><span class="typing-dot"></span><span id="typing-name"></span> digitando: <span id="typing-text" class="typing-text"></span><span class="typing-cursor">▌</span></div>
+      <div id="game-diff-badge" class="muted" style="font-size:12px;letter-spacing:1px;margin-bottom:4px"></div>
+      <div class="syllable-box">
+        <span class="label">SÍLABA</span>
+        <div id="syllable" class="syllable">--</div>
+      </div>
+      <div class="bomb-area">
+        <div id="bomb" class="bomb">💣</div>
+        <div id="timer" class="timer">05.0s</div>
+        <div id="timer-bar" class="timer-bar"><div id="timer-fill"></div></div>
+      </div>
+      <div id="feedback" class="feedback hidden"></div>
+      <div id="highlight" class="highlight hidden"></div>
+      <div class="input-area">
+        <input id="word-input" autocomplete="off" placeholder="Digite uma palavra..." maxlength="30">
+        <button id="btn-send" class="btn primary">ENVIAR</button>
+      </div>
+      <p id="game-error" class="error"></p>
+      <div id="last-words" class="last-words"></div>
+    </main>
+    <aside class="scoreboard mobile-hidden">
+      <h3>💬 Histórico</h3>
+      <div id="history"></div>
+    </aside>
+  </div>
+</section>
+
+<!-- EXPLOSION -->
+<section id="screen-explosion" class="screen">
+  <div class="explosion-wrap">
+    <div class="boom">💥</div>
+    <h2>BOOM!</h2>
+    <p id="explosion-text"></p>
+    <p id="explosion-lives"></p>
+    <p id="explosion-next" class="muted"></p>
+  </div>
+</section>
+
+<!-- ELIMINATED -->
+<section id="screen-eliminated" class="screen">
+  <div class="card center">
+    <h2>❌ ELIMINADO</h2>
+    <p>Você perdeu suas duas vidas.</p>
+    <p class="muted">Continue assistindo a partida.</p>
+    <button id="btn-spectate" class="btn secondary">👁️ Continuar assistindo</button>
+  </div>
+</section>
+
+<!-- VICTORY -->
+<section id="screen-victory" class="screen">
+  <div class="card victory-card">
+    <div class="trophy">🏆</div>
+    <h2>VENCEDOR!</h2>
+    <h1 id="victory-name"></h1>
+    <div id="victory-ranking" class="ranking"></div>
+    <div class="card-actions">
+      <button id="btn-play-again" class="btn primary">🔄 Voltar ao Lobby</button>
+      <button id="btn-home" class="btn ghost">🏠 Início</button>
+    </div>
+  </div>
+</section>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

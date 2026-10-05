@@ -162,6 +162,7 @@ const rooms = new Map(); // code -> room
 function getPublicRoom(room) {
   return {
     code: room.code,
+    game: room.game||'bomba',
     name: room.name,
     timerDuration: room.timerDuration,
     maxPlayers: room.maxPlayers,
@@ -298,6 +299,7 @@ io.on('connection', (socket) => {
     const parsedTimer = Math.min(30, Math.max(3, Number(timerDuration) || 5));
     const room = {
       code,
+      game:'bomba',
       name: roomName,
       passwordHash: hashPassword(password),
       timerDuration: parsedTimer,
@@ -333,6 +335,7 @@ io.on('connection', (socket) => {
     code = (code||'').toUpperCase().trim();
     const room = rooms.get(code);
     if (!room) return cb({ error: 'Sala não encontrada.' });
+    if (room.game==='velha') return cb({ error: 'Sala é de Velha. Acesse /velha' });
     if (room.passwordHash && room.passwordHash !== hashPassword(password)) return cb({ error: 'Senha incorreta.' });
     if (room.players.length >= room.maxPlayers) return cb({ error: 'Sala lotada.' });
     if (room.status === 'playing') return cb({ error: 'Partida já em andamento.' });
@@ -550,6 +553,82 @@ io.on('connection', (socket) => {
     cb && cb({ success:true, room: getPublicRoom(room) });
   });
 
+  // ====== JOGO DA VELHA MULTIPLAYER ======
+  function getVelhaPublic(room){
+    return {
+      code: room.code, game:'velha', status: room.status,
+      players: room.players.map(p=>({id:p.id,name:p.name,mark:p.mark,isAdmin:p.isAdmin})),
+      board: room.board, turn: room.turn, currentTurnId: room.currentTurnId, winner: room.winner, draw: room.draw, winLine: room.winLine
+    };
+  }
+  function checkVelhaWin(board){
+    const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    for(const [a,b,c] of wins){ if(board[a] && board[a]===board[b] && board[a]===board[c]) return {winner:board[a], line:[a,b,c]}; }
+    if(board.every(v=>v)) return {draw:true};
+    return null;
+  }
+  socket.on('createVelhaRoom', ({playerName}, cb)=>{
+    if(!playerName) return cb({error:'Nome obrigatório'});
+    let code; do{code=gerarCodigo();}while(rooms.has(code));
+    const room={code, name:'Velha', game:'velha', status:'lobby', players:[], board:Array(9).fill(null), turn:'X', currentTurnId:null, winner:null, draw:false, winLine:null};
+    const p={id:socket.id, socketId:socket.id, name:playerName.slice(0,12), mark:'X', isAdmin:true};
+    room.players.push(p); rooms.set(code,room); socket.join(code); socket.data.roomCode=code;
+    cb({success:true, room:getVelhaPublic(room)});
+    io.to(code).emit('velhaRoomUpdate', getVelhaPublic(room));
+  });
+  socket.on('joinVelhaRoom', ({playerName, code}, cb)=>{
+    code=(code||'').toUpperCase().trim();
+    const room=rooms.get(code);
+    if(!room) return cb({error:'Sala não encontrada'});
+    if(room.game!=='velha') return cb({error:'Sala é de Bomba, não Velha'});
+    if(room.players.length>=2) return cb({error:'Sala lotada (máx 2)'});
+    if(room.status==='playing') return cb({error:'Partida em andamento'});
+    const p={id:socket.id, socketId:socket.id, name:playerName.slice(0,12), mark:'O', isAdmin:false};
+    room.players.push(p); socket.join(code); socket.data.roomCode=code;
+    cb({success:true, room:getVelhaPublic(room)});
+    io.to(code).emit('velhaRoomUpdate', getVelhaPublic(room));
+  });
+  socket.on('velhaStart', (cb)=>{
+    const code=socket.data.roomCode; const room=rooms.get(code);
+    if(!room||room.game!=='velha') return cb&&cb({error:'Sala velha não encontrada'});
+    const me=room.players.find(p=>p.id===socket.id);
+    if(!me||!me.isAdmin) return cb&&cb({error:'Só admin inicia'});
+    if(room.players.length<2) return cb&&cb({error:'Precisa 2 jogadores'});
+    room.board=Array(9).fill(null); room.turn='X'; room.winner=null; room.draw=false; room.winLine=null;
+    room.status='playing'; room.currentTurnId=room.players.find(p=>p.mark==='X').id || room.players[0].id;
+    io.to(code).emit('velhaStarted',{board:room.board, turn:room.turn, currentTurnId:room.currentTurnId, players:room.players});
+    io.to(code).emit('velhaRoomUpdate', getVelhaPublic(room));
+    if(cb) cb({success:true});
+  });
+  socket.on('velhaMove', ({pos})=>{
+    const code=socket.data.roomCode; const room=rooms.get(code);
+    if(!room||room.game!=='velha'||room.status!=='playing') return socket.emit('velhaError','Fora de partida');
+    if(socket.id!==room.currentTurnId) return socket.emit('velhaError','Não é sua vez');
+    if(pos<0||pos>8||room.board[pos]) return socket.emit('velhaError','Posição ocupada');
+    const me=room.players.find(p=>p.id===socket.id);
+    room.board[pos]=me.mark;
+    const res=checkVelhaWin(room.board);
+    if(res?.winner){ room.winner=res.winner; room.winLine=res.line; room.status='finished'; room.winnerName=me.name; }
+    else if(res?.draw){ room.draw=true; room.status='finished'; }
+    else {
+      room.turn = room.turn==='X'?'O':'X';
+      room.currentTurnId = room.players.find(p=>p.mark===room.turn)?.id || room.players[0].id;
+    }
+    const payload={board:room.board, turn:room.turn, currentTurnId:room.currentTurnId, gameOver:!!(room.winner||room.draw), winner:room.winner, winnerName:room.winnerName, draw:room.draw, winLine:room.winLine, turnName: room.players.find(p=>p.mark===room.turn)?.name};
+    io.to(code).emit('velhaUpdate', payload);
+    io.to(code).emit('velhaRoomUpdate', getVelhaPublic(room));
+  });
+  socket.on('velhaRestart', ()=>{
+    const code=socket.data.roomCode; const room=rooms.get(code);
+    if(!room||room.game!=='velha') return;
+    const me=room.players.find(p=>p.id===socket.id);
+    if(!me||!me.isAdmin) return;
+    room.board=Array(9).fill(null); room.turn='X'; room.winner=null; room.draw=false; room.winLine=null; room.status='playing';
+    room.currentTurnId=room.players.find(p=>p.mark==='X').id;
+    io.to(code).emit('velhaStarted',{board:room.board, turn:room.turn, currentTurnId:room.currentTurnId, players:room.players});
+    io.to(code).emit('velhaRoomUpdate', getVelhaPublic(room));
+  });
+
   socket.on('toggleSound', ()=>{});
 });
 
@@ -563,6 +642,8 @@ app.get('/api/syllables/:difficulty', (req,res)=>{
 });
 app.get('/api/dictionary/size', (req,res)=> res.json({ size: DICTIONARY_SET.size }));
 
-app.get('*', (req,res)=> res.sendFile(path.join(__dirname,'public','index.html')));
+app.get('/bomba', (req,res)=> res.sendFile(path.join(__dirname,'public','bomba.html')));
+app.get('/velha', (req,res)=> res.sendFile(path.join(__dirname,'public','velha.html')));
+app.get('/', (req,res)=> res.sendFile(path.join(__dirname,'public','index.html')));
 
 server.listen(PORT, ()=> console.log(`💣 Bomba das Sílabas rodando em http://localhost:${PORT}`));

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⭕ Jogo da Velha — Arena Nevex</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.velha-wrap{max-width:900px;width:100%;display:flex;flex-direction:column;align-items:center;gap:16px}
+.mode-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;width:100%}
+.mode-card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;cursor:pointer;transition:transform .2s}
+.mode-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:360px;margin:auto}
+.cell{aspect-ratio:1;background:#0f1222;border:2px solid rgba(255,255,255,.12);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:800;cursor:pointer;transition:all .15s;font-family:'Fredoka',sans-serif}
+.cell:hover{border-color:var(--accent);background:rgba(124,77,255,.08)}
+.cell.x{color:#00e5ff;text-shadow:0 0 12px rgba(0,229,255,.6)}
+.cell.o{color:#ff3b30;text-shadow:0 0 12px rgba(255,59,48,.6)}
+.cell.win{background:rgba(0,230,118,.15);border-color:var(--success);animation:pop .3s}
+@keyframes pop{0%{transform:scale(.9)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+.status{padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);font-weight:700}
+.status.mine{background:rgba(0,230,118,.15);border-color:var(--success);color:var(--success)}
+.scores{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.score{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;min-width:120px;text-align:center}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<header class="topbar">
+  <div class="logo">⭕ VELHA <span>ARENA</span></div>
+  <div class="top-actions">
+    <button class="icon-btn" onclick="location.href='/'">🏠</button>
+    <button id="btnSound" class="icon-btn">🔊</button>
+  </div>
+</header>
+
+<!-- SELETOR MODO -->
+<section id="s-modes" class="screen active">
+  <div class="velha-wrap">
+    <h1 style="font-family:'Fredoka',sans-serif">Escolha o modo</h1>
+    <div class="mode-cards">
+      <div class="mode-card" onclick="selectMode('online')">
+        <h3>🌐 Online Multiplayer</h3><p class="muted">Crie sala com código, 2 jogadores em dispositivos diferentes.</p><button class="btn primary" style="margin-top:10px;width:100%">JOGAR ONLINE</button>
+      </div>
+      <div class="mode-card" onclick="selectMode('bot')">
+        <h3>🤖 Contra Bot</h3><p class="muted">Você (X) vs Bot (O). Bot com 3 níveis. Sem precisar de sala.</p><button class="btn secondary" style="margin-top:10px;width:100%">VS BOT</button>
+      </div>
+      <div class="mode-card" onclick="selectMode('local')">
+        <h3>📱 Mesmo Celular</h3><p class="muted">2 pessoas no mesmo aparelho, passa e joga.</p><button class="btn ghost" style="margin-top:10px;width:100%">2 NO MESMO</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ONLINE LOBBY -->
+<section id="s-lobby" class="screen">
+  <div class="card" style="max-width:500px;width:100%">
+    <h2 id="lobby-title">🌐 Online</h2>
+    <div id="online-forms">
+      <label>Seu nome <input id="v-name" maxlength="12" placeholder="Ex: Davi"></label>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button id="v-create" class="btn primary" style="flex:1">CRIAR SALA</button>
+        <button id="v-join-btn" class="btn secondary" style="flex:1">ENTRAR</button>
+      </div>
+      <div id="join-area" class="hidden" style="margin-top:12px">
+        <label>Código <input id="v-code" maxlength="6" placeholder="ABC123" style="text-transform:uppercase"></label>
+        <button id="v-join-do" class="btn primary" style="width:100%;margin-top:8px">ENTRAR NA SALA</button>
+      </div>
+      <p id="v-error" class="error"></p>
+    </div>
+    <div id="lobby-info" class="hidden">
+      <p>Sala: <b id="l-code"></b> • <span id="l-players"></span></p>
+      <div id="l-list" style="display:flex;gap:8px;justify-content:center;margin:10px 0"></div>
+      <button id="v-start" class="btn primary hidden" style="width:100%">▶️ INICIAR (2 jogadores)</button>
+      <p id="l-wait" class="muted">Aguardando outro jogador...</p>
+    </div>
+    <button class="btn ghost" style="margin-top:10px;width:100%" onclick="show('s-modes')">Voltar</button>
+  </div>
+</section>
+
+<!-- JOGO -->
+<section id="s-game" class="screen">
+  <div class="velha-wrap">
+    <div id="g-status" class="status">Vez de X</div>
+    <div class="scores">
+      <div class="score"><b id="score-x">X: 0</b><br><small id="name-x">Você</small></div>
+      <div class="score"><b>EMPATE: <span id="score-d">0</span></b></div>
+      <div class="score"><b id="score-o">O: 0</b><br><small id="name-o">Bot</small></div>
+    </div>
+    <div id="board" class="board"></div>
+    <div style="display:flex;gap:8px">
+      <button id="btn-reset" class="btn ghost">🔄 Reiniciar</button>
+      <button class="btn secondary" onclick="resetScores()">Zerar placar</button>
+      <button class="btn ghost" onclick="location.reload()">Sair</button>
+    </div>
+    <div id="bot-level" class="hidden"><label>🤖 Dificuldade Bot
+      <select id="bot-diff"><option value="easy">Fácil (aleatório)</option><option value="medium" selected>Médio</option><option value="hard">Difícil (imbatível)</option></select>
+    </label></div>
+  </div>
+</section>
+
+<div id="toast" class="toast hidden"></div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const $=id=>document.getElementById(id);
+const show=id=>{document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');};
+const toast=(m,t=2500)=>{const e=$('toast');e.textContent=m;e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),t);};
+let mode=null, room=null, myId=null, online=false, board=Array(9).fill(null), turn='X', scores={X:0,O:0,D:0}, names={X:'X',O:'O'}, isMyTurn=false, gameOver=false, botDiff='medium';
+
+// sons simples
+let soundOn=localStorage.getItem('bombSound')!=='off';
+$('btnSound').textContent=soundOn?'🔊':'🔇';
+$('btnSound').onclick=()=>{soundOn=!soundOn;localStorage.setItem('bombSound',on?'on':'off');$('btnSound').textContent=soundOn?'🔊':'🔇';};
+
+function selectMode(m){
+  mode=m; 
+  if(m==='online'){ show('s-lobby'); }
+  else { 
+    online=false; 
+    names.X= m==='bot'?'Você':'Jogador X';
+    names.O= m==='bot'?'Bot':'Jogador O';
+    $('name-x').textContent=names.X; $('name-o').textContent=names.O;
+    $('bot-level').classList.toggle('hidden', m!=='bot');
+    initBoard(); show('s-game'); 
+  }
+}
+$('bot-diff').onchange=e=>botDiff=e.target.value;
+
+// board UI
+function initBoard(){
+  board=Array(9).fill(null); turn='X'; gameOver=false; isMyTurn=true;
+  renderBoard(); updateStatus();
+}
+function renderBoard(){
+  const b=$('board'); b.innerHTML='';
+  board.forEach((v,i)=>{
+    const d=document.createElement('div');
+    d.className='cell'+(v?' '+v.toLowerCase():'');
+    d.textContent=v||'';
+    d.onclick=()=> handleClick(i);
+    b.appendChild(d);
+  });
+}
+function handleClick(i){
+  if(board[i] || gameOver) return;
+  if(online){
+    if(!isMyTurn) return toast('Não é sua vez!');
+    socket.emit('velhaMove',{pos:i});
+    return;
+  }
+  // local/bot
+  makeMove(i, turn);
+  if(checkEnd()) return;
+  turn = turn==='X'?'O':'X';
+  updateStatus();
+  if(mode==='bot' && turn==='O' && !gameOver){
+    setTimeout(botMove, 400);
+  }
+}
+function makeMove(i,p){
+  board[i]=p; renderBoard();
+}
+function updateStatus(){
+  const s=$('g-status');
+  if(gameOver) return;
+  if(online){
+    s.textContent = isMyTurn ? '🔥 Sua vez ('+myMark()+')' : '⏳ Vez de '+ (turn==='X'?names.X:names.O);
+    s.className = 'status'+(isMyTurn?' mine':'');
+  } else {
+    s.textContent = `Vez de ${turn} (${turn==='X'?names.X:names.O})`;
+    s.className='status'+(turn==='X'?' mine':'');
+  }
+}
+function myMark(){
+  if(!room || !online) return turn;
+  const me = room.players.find(p=>p.id===myId);
+  return me?.mark || '?';
+}
+const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function checkEnd(){
+  for(const [a,b,c] of wins){
+    if(board[a] && board[a]===board[b] && board[a]===board[c]){
+      gameOver=true;
+      document.querySelectorAll('.cell')[a].classList.add('win');
+      document.querySelectorAll('.cell')[b].classList.add('win');
+      document.querySelectorAll('.cell')[c].classList.add('win');
+      $('g-status').textContent=`🏆 ${board[a]} venceu!`;
+      scores[board[a]]++; updateScores(); 
+      return true;
+    }
+  }
+  if(board.every(v=>v)){
+    gameOver=true; $('g-status').textContent='🤝 Empate!'; scores.D++; updateScores(); return true;
+  }
+  return false;
+}
+function updateScores(){
+  $('score-x').textContent=`X: ${scores.X}`;
+  $('score-o').textContent=`O: ${scores.O}`;
+  $('score-d').textContent=scores.D;
+}
+function botMove(){
+  let pos=-1;
+  if(botDiff==='easy'){
+    const avail=board.map((v,i)=>v?null:i).filter(v=>v!==null);
+    pos=avail[Math.floor(Math.random()*avail.length)];
+  } else if(botDiff==='medium'){
+    // 50% tenta vencer/bloquear, 50% aleatório
+    pos=findBestMove() ?? randomMove();
+    if(Math.random()<0.4) pos=randomMove();
+  } else {
+    pos=findBestMove() ?? randomMove();
+  }
+  if(pos!==-1 && !board[pos]){
+    makeMove(pos,'O');
+    if(checkEnd()) return;
+    turn='X'; updateStatus();
+  }
+}
+function randomMove(){
+  const avail=board.map((v,i)=>v?null:i).filter(v=>v!==null);
+  return avail[Math.floor(Math.random()*avail.length)] ?? -1;
+}
+function findBestMove(){
+  // tenta vencer
+  for(const [a,b,c] of wins){
+    const line=[board[a],board[b],board[c]];
+    if(line.filter(v=>v==='O').length===2 && line.includes(null)){
+      const idx=[a,b,c][line.indexOf(null)]; return idx;
+    }
+  }
+  // bloqueia
+  for(const [a,b,c] of wins){
+    const line=[board[a],board[b],board[c]];
+    if(line.filter(v=>v==='X').length===2 && line.includes(null)){
+      const idx=[a,b,c][line.indexOf(null)]; return idx;
+    }
+  }
+  // centro
+  if(!board[4]) return 4;
+  // canto
+  for(const i of [0,2,6,8]) if(!board[i]) return i;
+  return null;
+}
+$('btn-reset').onclick=()=>{
+  if(online) socket.emit('velhaRestart');
+  else initBoard();
+};
+function resetScores(){scores={X:0,O:0,D:0};updateScores();initBoard();}
+
+// ONLINE via Socket.IO
+socket.on('connect',()=> myId=socket.id);
+$('v-create').onclick=()=>{
+  const n=$('v-name').value.trim()||'Jogador';
+  socket.emit('createVelhaRoom',{playerName:n},res=>{
+    if(res.error) return $('v-error').textContent=res.error;
+    room=res.room; online=true; showLobby();
+  });
+};
+$('v-join-btn').onclick=()=> $('join-area').classList.toggle('hidden');
+$('v-join-do').onclick=()=>{
+  const n=$('v-name').value.trim()||'Jogador';
+  const code=$('v-code').value.trim().toUpperCase();
+  if(!code) return $('v-error').textContent='Digite código';
+  socket.emit('joinVelhaRoom',{playerName:n,code},res=>{
+    if(res.error) return $('v-error').textContent=res.error;
+    room=res.room; online=true; showLobby();
+  });
+};
+function showLobby(){
+  $('online-forms').classList.add('hidden');
+  $('lobby-info').classList.remove('hidden');
+  $('l-code').textContent=room.code;
+  renderLobby();
+}
+function renderLobby(){
+  $('l-players').textContent=room.players.length+'/2';
+  const l=$('l-list'); l.innerHTML='';
+  room.players.forEach(p=>{
+    const d=document.createElement('div');
+    d.style.cssText='background:rgba(255,255,255,.06);padding:8px 12px;border-radius:999px';
+    d.textContent=(p.mark? p.mark+' ':'')+p.name+(p.id===myId?' (você)':'');
+    l.appendChild(d);
+  });
+  const isAdmin=room.players.find(p=>p.id===myId)?.isAdmin;
+  $('v-start').classList.toggle('hidden', !isAdmin || room.players.length<2);
+  $('l-wait').style.display = room.players.length<2?'block':'none';
+}
+$('v-start').onclick=()=> socket.emit('velhaStart');
+socket.on('velhaRoomUpdate',r=>{room=r; if($('s-lobby').classList.contains('active')) renderLobby();});
+socket.on('velhaStarted',data=>{
+  online=true; board=data.board; turn=data.turn; gameOver=false;
+  names.X=data.players[0].name+' (X)'; names.O=data.players[1].name+' (O)';
+  $('name-x').textContent=names.X; $('name-o').textContent=names.O;
+  updateScores(); renderBoard(); updateOnlineTurn(data); show('s-game');
+});
+socket.on('velhaUpdate',data=>{
+  board=data.board; turn=data.turn; gameOver=data.gameOver;
+  renderBoard();
+  // destaca vitória
+  if(data.winLine){ data.winLine.forEach(i=> document.querySelectorAll('.cell')[i]?.classList.add('win')); }
+  updateOnlineStatus(data);
+  updateOnlineTurn(data);
+});
+function updateOnlineTurn(data){
+  const me=room.players.find(p=>p.id===myId);
+  isMyTurn = data.currentTurnId===myId && !data.gameOver;
+  updateStatus();
+}
+function updateOnlineStatus(data){
+  const s=$('g-status');
+  if(data.winner){ s.textContent=`🏆 ${data.winnerName} (${data.winner}) venceu!`; scores[data.winner]++; updateScores();}
+  else if(data.draw){ s.textContent='🤝 Empate!'; scores.D++; updateScores();}
+  else s.textContent = isMyTurn ? '🔥 Sua vez ('+myMark()+')' : '⏳ Vez de '+data.turnName;
+  s.className='status'+(isMyTurn?' mine':'');
+}
+socket.on('velhaError',m=>toast(m));
+$('v-code').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase());
+</script>
+</body>
+</html>
